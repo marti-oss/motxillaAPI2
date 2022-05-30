@@ -11,6 +11,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\Bridge\Google\Transport\GmailSmtpTransport;
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -226,6 +229,15 @@ class MonitorController extends AbstractController
         $entityManager = $doctrine->getManager();
         $monitorRepository->add($monitor);
         $entityManager->flush();
+
+        $email = (new Email())
+            ->from('martilluisiker@gmail.com')
+            ->to($email)
+            ->subject("Credencials de Motxilla")
+            ->text("El teu email és: " . $email . "\n La teva contrasenya és: " .$monitor->getContrasenya());
+        $transport = new GmailSmtpTransport('martilluisiker', 'MartiIkerLluis');
+        $mailer = new Mailer($transport);
+        $mailer->send($email);
         return $response->setData([
             'success' => true,
             'data' => [
@@ -313,6 +325,7 @@ class MonitorController extends AbstractController
         $entityManager = $doctrine->getManager();
         $monitorRepository->add($user);
         $entityManager->flush();
+
         return $response->setData([
             'success' => true,
             'data' => [
