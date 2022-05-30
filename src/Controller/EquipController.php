@@ -11,7 +11,9 @@ use App\Repository\EquipRepository;
 use App\Repository\MonitorRepository;
 use App\Repository\ParticipantRepository;
 use App\Repository\ResponsableRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\Persistence\ManagerRegistry;
+use phpDocumentor\Reflection\Types\Null_;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -131,12 +133,43 @@ class EquipController extends AbstractController
     /**
      * @Route("/equips/{id}",methods={"DELETE"})
      */
-    public function deleteEquip(int $id, EquipRepository $repository, ManagerRegistry $doctrine)
+    public function deleteEquip(int $id, EquipRepository $repository, ManagerRegistry $doctrine, Connection $connection,
+    ActivitatProgramadaRepository $activitatProgramadaRepository, ParticipantRepository $participantRepository)
     {
         $response = new JsonResponse();
         $equip = $repository->find($id);
         if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip']);
+
         $entityManager = $doctrine->getManager();
+        //borrar activitat programada
+        $activitatProgramadaIds = $connection->createQueryBuilder()
+            ->select('acp.id')
+            ->from('activitat_programada','acp')
+            ->where('equip_id = :id')
+            ->setParameter('id',$id)
+            ->executeQuery()
+            ->fetchAllAssociative();
+        foreach ($activitatProgramadaIds as $activitatProgramadaId){
+            $activitatProgramada = $activitatProgramadaRepository->find($activitatProgramadaId);
+            $activitatProgramadaRepository->remove($activitatProgramada);
+        }
+
+        //borrar equipmonitor
+
+        //Posar a null participant
+        $participantsId = $connection->createQueryBuilder()
+            ->select('p.id')
+            ->from('participant', 'p')
+            ->where('equip_id = :id')
+            ->setParameter('id',$id)
+            ->executeQuery()
+            ->fetchAllAssociative();
+        foreach ($participantsId as $participantId){
+            $participant = $participantRepository->find($participantId);
+            $participant->setEquip(null);
+            $participantRepository->add($participant);
+        }
+
         $repository->remove($equip);
         $entityManager->flush();
         $response->setData([

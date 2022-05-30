@@ -105,15 +105,6 @@ class ParticipantController extends AbstractController
         $response = new JsonResponse();
         $participant = $participantRepository->find($id);
         if ($participant == null) return $response->setData(['success' => false, 'description' => 'Participant no trobat delete']);
-/*
-        $em = $doctrine->getManager();
-        $query = $em->createQuery(
-            'SELECT r
-            FROM ResponsableRepository r
-            WHERE r.participant_id = :id'
-        )->setParameter('id', $participant->getId());
-        $responsables = $query->getResult();
-*/
 
         $responsablesId = $connection->createQueryBuilder()
            ->select('r.id')
