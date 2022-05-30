@@ -7,6 +7,7 @@ use App\Entity\Persona;
 use App\Entity\Responsable;
 use App\Repository\ParticipantRepository;
 use App\Repository\ResponsableRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -99,19 +100,34 @@ class ParticipantController extends AbstractController
     /**
      * @Route("/participants/{id}", methods={"DELETE"})
      */
-    public function deleteParticipant(int $id, ParticipantRepository $participantRepository, ManagerRegistry $doctrine, ResponsableRepository $responsableRepository)
+    public function deleteParticipant(int $id, ParticipantRepository $participantRepository, ManagerRegistry $doctrine, ResponsableRepository $responsableRepository, Connection $connection)
     {
         $response = new JsonResponse();
         $participant = $participantRepository->find($id);
         if ($participant == null) return $response->setData(['success' => false, 'description' => 'Participant no trobat delete']);
-        $responsableRepository = $this->getDoctrine()
+/*
+        $em = $doctrine->getManager();
+        $query = $em->createQuery(
+            'SELECT r
+            FROM ResponsableRepository r
+            WHERE r.participant_id = :id'
+        )->setParameter('id', $participant->getId());
+        $responsables = $query->getResult();
+*/
 
-        $q = Doctrine_Core::getTable('Comentario')
-            ->createQuery('c')
-            ->where('c.autor = ?', 'Steve')
-            ->orderBy('c.created_at ASC');
-        $comentarios = $q->execute();
+        $responsablesId = $connection->createQueryBuilder()
+           ->select('r.id')
+            ->from('responsable','r')
+           ->where('participant_id = :id ')
+           ->setParameter('id',$id)
+           ->executeQuery()
+            ->fetchAllAssociative();
+
         $entityManager = $doctrine->getManager();
+        foreach ($responsablesId as $responsableId){
+            $responsable = $responsableRepository->find($responsableId);
+            $responsableRepository->remove($responsable);
+        }
         $participantRepository->remove($participant);
         $entityManager->flush();
         $response->setData([
