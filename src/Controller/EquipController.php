@@ -4,9 +4,11 @@ namespace App\Controller;
 
 use App\Entity\ActivitatProgramada;
 use App\Entity\Equip;
+use App\Entity\Monitor;
 use App\Repository\ActivitatProgramadaRepository;
 use App\Repository\ActivitatRepository;
 use App\Repository\EquipRepository;
+use App\Repository\MonitorRepository;
 use App\Repository\ParticipantRepository;
 use App\Repository\ResponsableRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -29,7 +31,7 @@ class EquipController extends AbstractController
             $equip = $repository->find($id);
             $equipArray[] = [
                 'id' => $equip->getId(),
-                'name' => $equip->getNom(),
+                'nom' => $equip->getNom(),
                 'monitors' => $equip->getMonitors(),
                 'participants' => $equip->getParticipants()
             ];
@@ -39,7 +41,7 @@ class EquipController extends AbstractController
             foreach ($equips as $equip) {
                 $equipArray[] = [
                     'id' => $equip->getId(),
-                    'name' => $equip->getNom(),
+                    'nom' => $equip->getNom(),
                     'monitors' => $equip->getMonitors(),
                     'participants' => $equip->getParticipants()
                 ];
@@ -62,11 +64,37 @@ class EquipController extends AbstractController
         $equipArray = [];
         $equip = $repository->find($id);
         if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip']);
+        $monitorsArray = [];
+        foreach ($equip->getMonitors() as $monitor) {
+            $monitorsArray[] = [
+                'id' => $monitor->getId(),
+                'nom' => $monitor->getPersona()->getNom(),
+                'cognom1' => $monitor->getPersona()->getCognom1(),
+                'cognon2' => $monitor->getPersona()->getCognom2(),
+                'email' => $monitor->getEmail(),
+                'dni' => $monitor->getPersona()->getDNI(),
+                'llicencia' => $monitor->getLlicencia(),
+                'targetaSanitaria' => $monitor->getTargetaSanitaria()
+            ];
+        }
+        $participantsArray = [];
+        foreach ($equip->getParticipants() as $participant) {
+            $participantsArray[] = [
+                'id' => $participant->getId(),
+                'nom' => $participant->getPersona()->getNom(),
+                'cognom1' => $participant->getPersona()->getCognom1(),
+                'cognon2' => $participant->getPersona()->getCognom2(),
+                'autoritzacio' => $participant->isAutoritzacio(),
+                'dni' => $participant->getPersona()->getDNI(),
+                'dataNaixement' => $participant->getDataNaixement(),
+                'targetaSanitaria' => $participant->getTargetaSanitaria()
+            ];
+        }
         $equipArray[] = [
             'id' => $equip->getId(),
-            'name' => $equip->getNom(),
-            'monitors' => $equip->getMonitors(),
-            'participants' => $equip->getParticipants()
+            'nom' => $equip->getNom(),
+            'monitors' => $monitorsArray,
+            'participants' => $participantsArray
         ];
 
         $response->setData([
@@ -121,7 +149,7 @@ class EquipController extends AbstractController
     /**
      * @Route("equips/{idEquip}/activitatsprogramades/{idActivitat}", methods={"DELETE"})
      */
-    public function deleteActivitatProgramada(int                 $idEquip, int $idActivitat, EquipRepository $equipRepository,
+    public function deleteActivitatProgramada(int                           $idEquip, int $idActivitat, EquipRepository $equipRepository,
                                               ActivitatProgramadaRepository $activitatProgramadaRepositoryRepository, ManagerRegistry $doctrine)
     {
         $response = new JsonResponse();
@@ -151,7 +179,8 @@ class EquipController extends AbstractController
     /**
      * @Route("/equips",methods={"POST"})
      */
-    public function addEquip(Request $request, EquipRepository $equipRepository, ManagerRegistry $doctrine)
+    public function addEquip(Request $request, EquipRepository $equipRepository, ManagerRegistry $doctrine,
+    MonitorRepository $monitorRepository, ParticipantRepository $participantRepository)
     {
         $response = new JsonResponse();
         $equip = new Equip();
@@ -163,13 +192,48 @@ class EquipController extends AbstractController
             ]);
         }
         $equip->setNom($nom);
+
+        $monitorsList = $request->get("idmonitors");
+        if(str_contains($monitorsList,"-")) {
+            $monitorsIdArray = explode($monitorsList,'-');
+            foreach ($monitorsIdArray as $idMonitor){
+                $monitor = $monitorRepository->find($idMonitor);
+                if($monitor == null )return $response->setData(['success' => false, 'data' => "monitor no trobat"]);
+                $equip->addMonitor($monitor);
+            }
+        }
+        else {
+            $monitor = $monitorRepository->find($monitorsList);
+            if($monitor == null )return $response->setData(['success' => false, 'data' => $monitorsList]);
+            $equip->addMonitor($monitor);
+        }
+
+
+        $participantsList = $request->get("idparticipants");
+
+        if(str_contains($participantsList,"-")) {
+            $participantsIdArray = explode($participantsList,'-');
+            foreach ($participantsIdArray as $idParticipant){
+                $participant = $participantRepository->find($idParticipant);
+                if($participant == null )return $response->setData(['success' => false, 'data' => "monitor no trobada"]);
+                $equip->addParticipant($participant);
+                $participant->setEquip($equip);
+                $participantRepository->add($participant);
+            }
+        }
+        else {
+            $participant = $participantRepository->find($participantsList);
+            if($participant == null )return $response->setData(['success' => false, 'data' => "monitor no trobada"]);
+            $participant->setEquip($equip);
+            $participantRepository->add($participant);
+        }
+
         $entityManager = $doctrine->getManager();
         $equipRepository->add($equip);
         $entityManager->flush();
 
-
         return $response->setData([
-            'success' => false,
+            'success' => true,
             'data' => [
                 'id' => $equip->getId(),
                 'nom' => $equip->getNom()
@@ -247,7 +311,7 @@ class EquipController extends AbstractController
         }
         $timeIni = new \DateTime($dataIni);
         $timeFi = new \DateTime($dataFi);
-        if($timeIni > $timeFi){
+        if ($timeIni > $timeFi) {
             return $response->setData([
                 'success' => false,
                 'data' => "dataIni no pot ser posterior a dataFi"
@@ -270,37 +334,39 @@ class EquipController extends AbstractController
 
         $act = [];
         $list = $equip->getActivitatsProgramades()->getValues();
-        foreach ( $list as $a){
+        foreach ($list as $a) {
             $act[] = [
-                'id'=>$a->getId(),
+                'id' => $a->getId(),
                 'nom' => $a->getNom(),
-                'objectiu'=> $a->getObjectiu(),
-                'interior'=> $a->isInterior(),
-                'descripcio'=> $a->getDescripcio(),
-                'dataIni'=> $a->getDataIni(),
+                'objectiu' => $a->getObjectiu(),
+                'interior' => $a->isInterior(),
+                'descripcio' => $a->getDescripcio(),
+                'dataIni' => $a->getDataIni(),
                 'dataFi' => $a->getDataFi(),
             ];
         }
 
         return $response->setData([
-            'success'=> true,
+            'success' => true,
             'data' => [
                 'idEquip' => $equip->getId(),
                 'activitatprogramada' => $act
             ]
         ]);
     }
+
     /**
      * @Route("/equips/{idEq}/activitatsprogramades/{idAct}",methods={"PUT"})
      */
-    public function editActivitatProgramada(int $idEq, int $idAct, Request $request, ManagerRegistry $doctrine,
-    ActivitatProgramadaRepository $activitatProgramadaRepository, EquipRepository $equipRepository) {
+    public function editActivitatProgramada(int                           $idEq, int $idAct, Request $request, ManagerRegistry $doctrine,
+                                            ActivitatProgramadaRepository $activitatProgramadaRepository, EquipRepository $equipRepository)
+    {
         $response = new JsonResponse();
         $equip = $equipRepository->find($idEq);
         if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip']);
         $actProg = $activitatProgramadaRepository->find($idAct);
         if ($actProg == null) return $response->setData(['succes' => false, 'description' => 'No existeix activitatProgramada']);
-        if($actProg->getEquip() != $equip) return $response->setData(['succes' => false, 'description' => 'ActivitatProgramada no pertany a l?Equip']);
+        if ($actProg->getEquip() != $equip) return $response->setData(['succes' => false, 'description' => 'ActivitatProgramada no pertany a l?Equip']);
 
         $dataIni = $request->get('dataIni');
         $dataFi = $request->get('dataFi');
@@ -310,25 +376,25 @@ class EquipController extends AbstractController
         $interior = $request->get('interior');
         $descripcio = $request->get('descripcio');
 
-        if($nom != null)
+        if ($nom != null)
             $actProg->setNom($nom);
-        if($dataIni != null) {
+        if ($dataIni != null) {
             $timeIni = new \DateTime($dataIni);
             $actProg->setDataIni($timeIni);
         }
-        if($dataFi != null) {
+        if ($dataFi != null) {
             $timeFi = new \DateTime($dataFi);
             $actProg->setDataFi($timeFi);
         }
-        if($descripcio != null)
+        if ($descripcio != null)
             $actProg->setDescripcio($descripcio);
-        if($objectiu != null)
+        if ($objectiu != null)
             $actProg->setObjectiu($objectiu);
-        if($interior != null)
+        if ($interior != null)
             $actProg->setInterior($interior);
 
-        if($actProg->getDataIni() > $actProg->getDataFi())
-            return $response->setData(['success'=>false, 'data' => 'dataIni posterior a dataFi']);
+        if ($actProg->getDataIni() > $actProg->getDataFi())
+            return $response->setData(['success' => false, 'data' => 'dataIni posterior a dataFi']);
         $equip->addActivitatsProgramade($actProg);
 
         $entityManager = $doctrine->getManager();
@@ -339,19 +405,19 @@ class EquipController extends AbstractController
 
         $act = [];
         $list = $equip->getActivitatsProgramades()->getValues();
-        foreach ( $list as $a){
+        foreach ($list as $a) {
             $act[] = [
-                'id'=>$a->getId(),
-                'objectiu'=> $a->getObjectiu(),
-                'interior'=> $a->isInterior(),
-                'descripcio'=> $a->getDescripcio(),
-                'dataIni'=> $a->getDataIni(),
+                'id' => $a->getId(),
+                'objectiu' => $a->getObjectiu(),
+                'interior' => $a->isInterior(),
+                'descripcio' => $a->getDescripcio(),
+                'dataIni' => $a->getDataIni(),
                 'dataFi' => $a->getDataFi(),
             ];
         }
 
         return $response->setData([
-            'success'=> true,
+            'success' => true,
             'data' => [
                 'idEquip' => $equip->getId(),
                 'activitatprogramada' => $act

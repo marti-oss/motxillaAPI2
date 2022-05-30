@@ -82,7 +82,7 @@ class MonitorController extends AbstractController
     }
 
     /**
-     * @Route("/monitors/")
+     * @Route("/monitors/",methods={"GET"})
      */
     public function getMonitors(MonitorRepository $monitorRepository): Response
     {
@@ -90,7 +90,7 @@ class MonitorController extends AbstractController
         $monitors = $monitorRepository->findAll();
         $monitorsArray = [];
         foreach ($monitors as $monitor) {
-            $monitorsArray = [
+            $monitorsArray[] = [
                 'id' => $monitor->getId(),
                 'nom' => $monitor->getPersona()->getNom(),
                 'cognom1' => $monitor->getPersona()->getCognom1(),
