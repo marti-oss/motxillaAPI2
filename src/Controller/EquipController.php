@@ -52,7 +52,8 @@ class EquipController extends AbstractController
         $response = new JsonResponse();
         $response->setData([
             'success' => true,
-            'data' => $equipArray
+            'data' => $equipArray,
+            'code' => 200
         ]);
         return $response;
     }
@@ -65,7 +66,7 @@ class EquipController extends AbstractController
         $response = new JsonResponse();
         $equipArray = [];
         $equip = $repository->find($id);
-        if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip']);
+        if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip' ,  'code' => 401]);
         $monitorsArray = [];
         foreach ($equip->getMonitors() as $monitor) {
             $monitorsArray[] = [
@@ -101,7 +102,8 @@ class EquipController extends AbstractController
 
         $response->setData([
             'success' => true,
-            'data' => $equipArray
+            'data' => $equipArray,
+            'code' => 200
         ]);
         return $response;
     }
@@ -114,7 +116,7 @@ class EquipController extends AbstractController
         $response = new JsonResponse();
         $equipArray = [];
         $equip = $equipRepository->find($id);
-        if ($equip == null) return $response->setData(['success' => false, 'description' => 'No existeix l\'equip']);
+        if ($equip == null) return $response->setData(['success' => false, 'description' => 'No existeix l\'equip',  'code' => 401]);
         $participants = $participantRepository->findBy(['equip' => $equip]);
         $reponsables = $responsableRepository->findBy(['participant' => $participants]);
         foreach ($reponsables as $reponsable) {
@@ -125,7 +127,8 @@ class EquipController extends AbstractController
 
         $response->setData([
             'success' => true,
-            'data' => $equipArray
+            'data' => $equipArray,
+            'code' => 200
         ]);
         return $response;
     }
@@ -138,7 +141,7 @@ class EquipController extends AbstractController
     {
         $response = new JsonResponse();
         $equip = $repository->find($id);
-        if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip']);
+        if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip',  'code' => 401]);
 
         $entityManager = $doctrine->getManager();
         //borrar activitat programada
@@ -153,8 +156,6 @@ class EquipController extends AbstractController
             $activitatProgramada = $activitatProgramadaRepository->find($activitatProgramadaId);
             $activitatProgramadaRepository->remove($activitatProgramada);
         }
-
-        //borrar equipmonitor
 
         //Posar a null participant
         $participantsId = $connection->createQueryBuilder()
@@ -174,7 +175,8 @@ class EquipController extends AbstractController
         $entityManager->flush();
         $response->setData([
             'success' => true,
-            'data' => "Esborrat correctament"
+            'data' => "Esborrat correctament",
+            'code' => 200
         ]);
         return $response;
     }
@@ -187,7 +189,7 @@ class EquipController extends AbstractController
     {
         $response = new JsonResponse();
         $equip = $equipRepository->find($idEquip);
-        if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip']);
+        if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip',  'code' => 401]);
         $activitats = $equip->getActivitatsProgramades()->getValues();
         foreach ($activitats as $activitat) {
             if ($activitat->getId() == $idActivitat) {
@@ -196,7 +198,8 @@ class EquipController extends AbstractController
                 $entityManager->flush();
                 $response->setData([
                     'success' => true,
-                    'data' => "Esborrat correctament"
+                    'data' => "Esborrat correctament",
+                    'code' => 200
                 ]);
                 return $response;
             }
@@ -204,7 +207,8 @@ class EquipController extends AbstractController
 
         $response->setData([
             'success' => false,
-            'data' => "No existeix activitat programada en aquest equip"
+            'data' => "No existeix activitat programada en aquest equip",
+            'code' => 401
         ]);
         return $response;
     }
@@ -221,7 +225,8 @@ class EquipController extends AbstractController
         if ($nom == null) {
             return $response->setData([
                 'success' => false,
-                'data' => "nom no indicat"
+                'data' => "nom no indicat",
+                'code' => 401
             ]);
         }
         $equip->setNom($nom);
@@ -231,13 +236,13 @@ class EquipController extends AbstractController
             $monitorsIdArray = explode($monitorsList,'-');
             foreach ($monitorsIdArray as $idMonitor){
                 $monitor = $monitorRepository->find($idMonitor);
-                if($monitor == null )return $response->setData(['success' => false, 'data' => "monitor no trobat"]);
+                if($monitor == null )return $response->setData(['success' => false, 'data' => "monitor no trobat",  'code' => 401]);
                 $equip->addMonitor($monitor);
             }
         }
         else {
             $monitor = $monitorRepository->find($monitorsList);
-            if($monitor == null )return $response->setData(['success' => false, 'data' => $monitorsList]);
+            if($monitor == null )return $response->setData(['success' => false, 'data' => $monitorsList,  'code' => 401]);
             $equip->addMonitor($monitor);
         }
 
@@ -248,7 +253,7 @@ class EquipController extends AbstractController
             $participantsIdArray = explode($participantsList,'-');
             foreach ($participantsIdArray as $idParticipant){
                 $participant = $participantRepository->find($idParticipant);
-                if($participant == null )return $response->setData(['success' => false, 'data' => "monitor no trobada"]);
+                if($participant == null )return $response->setData(['success' => false, 'data' => "monitor no trobada",  'code' => 401]);
                 $equip->addParticipant($participant);
                 $participant->setEquip($equip);
                 $participantRepository->add($participant);
@@ -256,7 +261,7 @@ class EquipController extends AbstractController
         }
         else {
             $participant = $participantRepository->find($participantsList);
-            if($participant == null )return $response->setData(['success' => false, 'data' => "monitor no trobada"]);
+            if($participant == null )return $response->setData(['success' => false, 'data' => "monitor no trobada",  'code' => 401]);
             $participant->setEquip($equip);
             $participantRepository->add($participant);
         }
@@ -270,7 +275,8 @@ class EquipController extends AbstractController
             'data' => [
                 'id' => $equip->getId(),
                 'nom' => $equip->getNom()
-            ]
+            ],
+            'code' => 200
         ]);
     }
 
@@ -281,7 +287,7 @@ class EquipController extends AbstractController
     {
         $response = new JsonResponse();
         $equip = $equipRepository->find($id);
-        if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip']);
+        if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip',  'code' => 401]);
         $nom = $request->get('nom');
         if ($nom != null) {
             $equip->setNom($nom);
@@ -290,11 +296,12 @@ class EquipController extends AbstractController
         $equipRepository->add($equip);
         $entityManager->flush();
         return $response->setData([
-            'success' => false,
+            'success' => true,
             'data' => [
                 'id' => $equip->getId(),
                 'nom' => $equip->getNom()
-            ]
+            ],
+            'code' => 200
         ]);
     }
 
@@ -305,7 +312,7 @@ class EquipController extends AbstractController
     {
         $response = new JsonResponse();
         $equip = $equipRepository->find($id);
-        if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip']);
+        if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip',  'code' => 401]);
         $dataIni = $request->get('dataIni');
         $dataFi = $request->get('dataFi');
         $nom = $request->get('nom');
@@ -315,31 +322,36 @@ class EquipController extends AbstractController
         if ($dataIni == null) {
             return $response->setData([
                 'success' => false,
-                'data' => "dataIni no indicat"
+                'data' => "dataIni no indicat",
+                'code' => 401
             ]);
         }
         if ($dataFi == null) {
             return $response->setData([
                 'success' => false,
-                'data' => "dataFi no indicat"
+                'data' => "dataFi no indicat",
+                'code' => 401
             ]);
         }
         if ($nom == null) {
             return $response->setData([
                 'success' => false,
-                'data' => "nom no indicat"
+                'data' => "nom no indicat",
+                'code' => 401
             ]);
         }
         if ($objectiu == null) {
             return $response->setData([
                 'success' => false,
-                'data' => "objectiu no indicat"
+                'data' => "objectiu no indicat",
+                'code' => 401
             ]);
         }
         if ($interior == null) {
             return $response->setData([
                 'success' => false,
-                'data' => "interior no indicat"
+                'data' => "interior no indicat",
+                'code' => 401
             ]);
         }
         $timeIni = new \DateTime($dataIni);
@@ -347,7 +359,8 @@ class EquipController extends AbstractController
         if ($timeIni > $timeFi) {
             return $response->setData([
                 'success' => false,
-                'data' => "dataIni no pot ser posterior a dataFi"
+                'data' => "dataIni no pot ser posterior a dataFi",
+                'code' => 401
             ]);
         }
         $activitatprogramada = new ActivitatProgramada();
@@ -384,7 +397,8 @@ class EquipController extends AbstractController
             'data' => [
                 'idEquip' => $equip->getId(),
                 'activitatprogramada' => $act
-            ]
+            ],
+            'code' => 200
         ]);
     }
 
@@ -396,10 +410,10 @@ class EquipController extends AbstractController
     {
         $response = new JsonResponse();
         $equip = $equipRepository->find($idEq);
-        if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip']);
+        if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip',  'code' => 401]);
         $actProg = $activitatProgramadaRepository->find($idAct);
-        if ($actProg == null) return $response->setData(['succes' => false, 'description' => 'No existeix activitatProgramada']);
-        if ($actProg->getEquip() != $equip) return $response->setData(['succes' => false, 'description' => 'ActivitatProgramada no pertany a l?Equip']);
+        if ($actProg == null) return $response->setData(['succes' => false, 'description' => 'No existeix activitatProgramada',  'code' => 401]);
+        if ($actProg->getEquip() != $equip) return $response->setData(['succes' => false, 'description' => 'ActivitatProgramada no pertany a l?Equip',  'code' => 401]);
 
         $dataIni = $request->get('dataIni');
         $dataFi = $request->get('dataFi');
@@ -427,7 +441,7 @@ class EquipController extends AbstractController
             $actProg->setInterior($interior);
 
         if ($actProg->getDataIni() > $actProg->getDataFi())
-            return $response->setData(['success' => false, 'data' => 'dataIni posterior a dataFi']);
+            return $response->setData(['success' => false, 'data' => 'dataIni posterior a dataFi',  'code' => 401]);
         $equip->addActivitatsProgramade($actProg);
 
         $entityManager = $doctrine->getManager();
@@ -454,7 +468,8 @@ class EquipController extends AbstractController
             'data' => [
                 'idEquip' => $equip->getId(),
                 'activitatprogramada' => $act
-            ]
+            ],
+            'code' => 200
         ]);
     }
 

@@ -27,7 +27,7 @@ class MonitorController extends AbstractController
     {
         $response = new JsonResponse();
         $monitor = $monitorRepository->find($id);
-        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'El monitor no existeix']);
+        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'El monitor no existeix',  'code' => 401]);
         $equips = $monitor->getEquips();
         $activitatsProgramadesArray = [];
         foreach ($equips as $equip) {
@@ -46,7 +46,8 @@ class MonitorController extends AbstractController
         }
         $response->setData([
             'success' => true,
-            'data' => $activitatsProgramadesArray
+            'data' => $activitatsProgramadesArray,
+            'code' => 200
         ]);
         return $response;
     }
@@ -58,7 +59,7 @@ class MonitorController extends AbstractController
     {
         $response = new JsonResponse();
         $monitor = $monitorRepository->find($idMonitor);
-        if ($monitor == null) return $response->setData(['success' => false, 'description' => "Monitor no existeix"]);
+        if ($monitor == null) return $response->setData(['success' => false, 'description' => "Monitor no existeix",  'code' => 401]);
         $equips = $monitor->getEquips();
         $activitatProgramada = $activitatProgramadaRepository->find($idActivitat);
         if ($activitatProgramada != null) {
@@ -79,7 +80,8 @@ class MonitorController extends AbstractController
 
         $response->setData([
             'success' => true,
-            'data' => $activitatsProgramadesArray
+            'data' => $activitatsProgramadesArray,
+            'code' => 200
         ]);
         return $response;
     }
@@ -106,7 +108,8 @@ class MonitorController extends AbstractController
         }
         $response->setData([
             'success' => true,
-            'data' => $monitorsArray
+            'data' => $monitorsArray,
+            'code' => 200
         ]);
         return $response;
     }
@@ -118,7 +121,7 @@ class MonitorController extends AbstractController
     {
         $response = new JsonResponse();
         $monitor = $monitorRepository->find($id);
-        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'No existeix monitor']);
+        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'No existeix monitor',  'code' => 401]);
         $monitorsArray = [
             'id' => $monitor->getId(),
             'nom' => $monitor->getPersona()->getNom(),
@@ -131,7 +134,8 @@ class MonitorController extends AbstractController
         ];
         $response->setData([
             'success' => true,
-            'data' => $monitorsArray
+            'data' => $monitorsArray,
+            'code' => 401
         ]);
         return $response;
     }
@@ -143,7 +147,7 @@ class MonitorController extends AbstractController
     {
         $response = new JsonResponse();
         $monitor = $monitorRepository->find($id);
-        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'No existeix monitor']);
+        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'No existeix monitor',  'code' => 401]);
         $equips = $monitor->getEquips()->getValues();
         $equipArray = [];
         foreach ($equips as $equip) {
@@ -154,7 +158,8 @@ class MonitorController extends AbstractController
         }
         $response->setData([
             'success' => true,
-            'data' => $equipArray
+            'data' => $equipArray,
+            'code' => 200
         ]);
         return $response;
     }
@@ -166,13 +171,14 @@ class MonitorController extends AbstractController
     {
         $response = new JsonResponse();
         $monitor = $monitorRepository->find($id);
-        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'No existeix monitor']);
+        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'No existeix monitor',  'code' => 401]);
         $entityManager = $doctrine->getManager();
         $monitorRepository->remove($monitor);
         $entityManager->flush();
         $response->setData([
             'success' => true,
-            'data' => 'Esborrat correctament'
+            'data' => 'Esborrat correctament',
+            'code' => 200
         ]);
         return $response;
     }
@@ -193,25 +199,29 @@ class MonitorController extends AbstractController
         if ($nom == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'Nom no indicat'
+                'data' => 'Nom no indicat',
+                'code' => 401
             ]);
         }
         if ($cognom1 == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'Cognom1 no indicat'
+                'data' => 'Cognom1 no indicat',
+                'code' => 401
             ]);
         }
         if ($dni == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'dni no indicat'
+                'data' => 'dni no indicat',
+                'code' => 401
             ]);
         }
         if ($email == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'email no indicat'
+                'data' => 'email no indicat',
+                'code' => 401
             ]);
         }
 
@@ -250,7 +260,8 @@ class MonitorController extends AbstractController
                 'targetaSanitaria' => $monitor->getTargetaSanitaria(),
                 'email' => $monitor->getEmail(),
                 'contrasenya' => $monitor->getContrasenya()
-            ]
+            ],
+            'code' => 200
         ]);
     }
 
@@ -261,7 +272,7 @@ class MonitorController extends AbstractController
     {
         $response = new JsonResponse();
         $monitor = $monitorRepository->find($id);
-        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'No existeix monitor']);
+        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'No existeix monitor',  'code' => 401]);
         $nom = $request->get('nom');
         $cognom1 = $request->get('cognom1');
         $cognom2 = $request->get('cognom2');
@@ -306,7 +317,8 @@ class MonitorController extends AbstractController
                 'targetaSanitaria' => $monitor->getTargetaSanitaria(),
                 'email' => $monitor->getEmail(),
                 'contrasenya' => $monitor->getContrasenya()
-            ]
+            ],
+            'code' => 200
         ]);
     }
 
@@ -318,8 +330,8 @@ class MonitorController extends AbstractController
         $response = new JsonResponse();
         $cont_actual = $request->get("actual");
         $cont_nova = $request->get('nova');
-        if ($cont_actual == null) return $response->setData(['success' => false, 'description' => 'actual no indicat']);
-        if ($cont_nova == null) return $response->setData(['success' => false, 'description' => 'nova no indicat']);
+        if ($cont_actual == null) return $response->setData(['success' => false, 'description' => 'actual no indicat',  'code' => 401]);
+        if ($cont_nova == null) return $response->setData(['success' => false, 'description' => 'nova no indicat',  'code' => 401]);
         $user = $monitorRepository->find(3);
         $user->setContrasenya($cont_nova);
         $entityManager = $doctrine->getManager();
@@ -338,7 +350,8 @@ class MonitorController extends AbstractController
                 'targetaSanitaria' => $user->getTargetaSanitaria(),
                 'email' => $user->getEmail(),
                 'contrasenya' => $user->getContrasenya()
-            ]
+            ],
+            'code' => 401
         ]);
     }
 }

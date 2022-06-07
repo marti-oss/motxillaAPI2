@@ -41,7 +41,8 @@ class ActivitatController extends AbstractController
         $response = new JsonResponse();
         $response->setData([
             'success' => true,
-            'data' => $activitatArray
+            'data' => $activitatArray,
+            'code' => 200
         ]);
         return $response;
     }
@@ -54,7 +55,7 @@ class ActivitatController extends AbstractController
         $response = new JsonResponse();
         $activitatArray = [];
         $activitat = $repository->find($id);
-        if ($activitat == null) return $response -> setData(['success'=>false, 'description'=>'Activitat no existeix']);
+        if ($activitat == null) return $response -> setData(['success'=>false, 'description'=>'Activitat no existeix',  'code' => 401]);
         $activitatArray[] = [
             'id' => $activitat->getId(),
             'name' => $activitat->getNom(),
@@ -64,7 +65,8 @@ class ActivitatController extends AbstractController
         ];
         $response->setData([
             'success' => true,
-            'data' => $activitatArray
+            'data' => $activitatArray,
+            'code' => 200
         ]);
         return $response;
     }

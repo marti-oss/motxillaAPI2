@@ -33,13 +33,14 @@ class ParticipantController extends AbstractController
                 'cognom2' => $participant->getPersona()->getCognom2(),
                 'dni' => $participant->getPersona()->getDNI(),
                 'autoritzacio' => $participant->isAutoritzacio(),
-                'dataNaixement' => $participant->getDataNaixement(),
+                'dataNaixement' => $participant->getDataNaixement()->format("d/m/Y"),
                 'targetaSanitaria' => $participant->getTargetaSanitaria(),
             ];
         }
         $response->setData([
             'success' => true,
-            'data' => $participantsArray
+            'data' => $participantsArray,
+            'code' => 200
         ]);
         return $response;
     }
@@ -51,7 +52,7 @@ class ParticipantController extends AbstractController
     {
         $response = new JsonResponse();
         $participant = $participantRepository->find($id);
-        if ($participant == null) return $response->setData(['success' => false, 'description' => 'Participant no trobat']);
+        if ($participant == null) return $response->setData(['success' => false, 'description' => 'Participant no trobat', 'code' => 401]);
         $participantsArray = [
             'id' => $participant->getId(),
             'nom' => $participant->getPersona()->getNom(),
@@ -64,7 +65,8 @@ class ParticipantController extends AbstractController
         ];
         $response->setData([
             'success' => true,
-            'data' => $participantsArray
+            'data' => $participantsArray,
+            'code' => 200
         ]);
         return $response;
     }
@@ -75,7 +77,7 @@ class ParticipantController extends AbstractController
     {
         $response = new JsonResponse();
         $participant = $participantRepository->find($id);
-        if ($participant == null) return $response->setData(['success' => false, 'description' => 'Participant no trobat']);
+        if ($participant == null) return $response->setData(['success' => false, 'description' => 'Participant no trobat', 'code' => 401]);
         $responsables = $responsableRepository->findAll();
         $responsableList = [];
         foreach ($responsables as $responsable) {
@@ -93,7 +95,8 @@ class ParticipantController extends AbstractController
         }
         return $response->setData([
             'success' => true,
-            'data' => $responsableList
+            'data' => $responsableList,
+            'code' => 200
         ]);
     }
 
@@ -104,7 +107,7 @@ class ParticipantController extends AbstractController
     {
         $response = new JsonResponse();
         $participant = $participantRepository->find($id);
-        if ($participant == null) return $response->setData(['success' => false, 'description' => 'Participant no trobat delete']);
+        if ($participant == null) return $response->setData(['success' => false, 'description' => 'Participant no trobat delete', 'code' => 401]);
 
         $responsablesId = $connection->createQueryBuilder()
            ->select('r.id')
@@ -123,7 +126,8 @@ class ParticipantController extends AbstractController
         $entityManager->flush();
         $response->setData([
             'success' => true,
-            'data' => "Esborrat correctament"
+            'data' => "Esborrat correctament",
+            'code' => 200
         ]);
         return $response;
     }
@@ -147,37 +151,43 @@ class ParticipantController extends AbstractController
         if ($nom == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'Nom no indicat'
+                'data' => 'Nom no indicat',
+                'code' => 401
             ]);
         }
         if ($cognom1 == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'Cognom1 no indicat'
+                'data' => 'Cognom1 no indicat',
+                'code' => 401
             ]);
         }
         if ($dni == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'dni no indicat'
+                'data' => 'dni no indicat',
+                'code' => 401
             ]);
         }
         if ($autoritzacio == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'autoritzacio no indicat'
+                'data' => 'autoritzacio no indicat',
+                'code' => 401
             ]);
         }
         if ($targetaSanitaria == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'targetaSanitaria no indicat'
+                'data' => 'targetaSanitaria no indicat',
+                'code' => 401
             ]);
         }
         if ($dataNaix == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'dataNeixament no indicat'
+                'data' => 'dataNeixament no indicat',
+                'code' => 401
             ]);
         }
 
@@ -188,7 +198,7 @@ class ParticipantController extends AbstractController
         $persona->setCognom2($cognom2);
         $persona->setDNI($dni);
         $participant->setPersona($persona);
-        $participant->setAutoritzacio($autoritzacio);
+        $participant->setAutoritzacio($autoritzacio == "true");
         $participant->setTargetaSanitaria($targetaSanitaria);
         $time = new \DateTime($dataNaix);
         $participant->setDataNaixement($time);
@@ -228,7 +238,8 @@ class ParticipantController extends AbstractController
                 'autoritzacio' => $participant->isAutoritzacio(),
                 'targetaSanitaria' => $participant->getTargetaSanitaria(),
                 'dataNeixament' => $participant->getDataNaixement()
-            ]
+            ],
+            'code' => 200
         ]);
     }
 
@@ -240,36 +251,41 @@ class ParticipantController extends AbstractController
     {
         $response = new JsonResponse();
         $participant = $participantRepository->find($idPart);
-        if($participant == null) return $response->setData(['succes'=>false, 'data'=>"Participant no trobat" ]);
+        if($participant == null) return $response->setData(['succes'=>false, 'data'=>"Participant no trobat" ,'code' => 401]);
 
         if ($nom == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'Nom no indicat'
+                'data' => 'Nom no indicat',
+                'code' => 401
             ]);
         }
         if ($cognom1 == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'Cognom1 no indicat'
+                'data' => 'Cognom1 no indicat',
+                'code' => 401
             ]);
         }
         if ($dni == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'dni no indicat'
+                'data' => 'dni no indicat',
+                'code' => 401
             ]);
         }
         if ($email == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'email no indicat'
+                'data' => 'email no indicat',
+                'code' => 401
             ]);
         }
         if ($telefon1 == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'telefon1 no indicat'
+                'data' => 'telefon1 no indicat',
+                'code' => 401
             ]);
         }
 
@@ -334,7 +350,7 @@ class ParticipantController extends AbstractController
             $participant->getPersona()->setDNI($dni);
         }
         if ($autoritzacio != null) {
-            $participant->setAutoritzacio($autoritzacio);
+            $participant->setAutoritzacio($autoritzacio == "true");
         }
         if ($targetaSanitaria != null) {
             $participant->setTargetaSanitaria($targetaSanitaria);
@@ -356,7 +372,8 @@ class ParticipantController extends AbstractController
                 'autoritzacio' => $participant->isAutoritzacio(),
                 'targetaSanitaria' => $participant->getTargetaSanitaria(),
                 'dataNeixament' => $participant->getDataNaixement()
-            ]
+            ],
+            'code' => 200
         ]);
     }
 
@@ -367,9 +384,9 @@ class ParticipantController extends AbstractController
     {
         $response = new JsonResponse();
         $participant = $participantRepository->find($idPart);
-        if ($participant == null) return $response->setData(['success' => false, 'description' => 'Participant no trobat']);
+        if ($participant == null) return $response->setData(['success' => false, 'description' => 'Participant no trobat', 'code' => 401]);
         $responsable = $responsableRepository->find($idRes);
-        if ($participant == null) return $response->setData(['success' => false, 'description' => 'Responsable no trobat']);
+        if ($participant == null) return $response->setData(['success' => false, 'description' => 'Responsable no trobat', 'code' => 401]);
         $nom = $request->get('nom');
         $cognom1 = $request->get('cognom1');
         $cognom2 = $request->get('cognom2');
@@ -414,7 +431,8 @@ class ParticipantController extends AbstractController
                 'email' => $responsable->getEmail(),
                 'telefon1' => $responsable->getTelefon1(),
                 'telefon2' => $responsable->getTelefon2()
-            ]
+            ],
+            'code' => 200
         ]);
     }
 

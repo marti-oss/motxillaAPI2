@@ -23,7 +23,7 @@ class ResponsableController extends AbstractController
         $response = new JsonResponse();
         $idPart = $request->get('idParticipant');
         $participant = $participantRepository->find($idPart);
-        if($participant == null) return $response->setData(['succes'=>false, 'data'=>"Participant no trobat" ]);
+        if($participant == null) return $response->setData(['succes'=>false, 'data'=>"Participant no trobat", 'code' => 401 ]);
 
         $nom = $request->get('nom');
         $cognom1 = $request->get('cognom1');
@@ -36,31 +36,36 @@ class ResponsableController extends AbstractController
         if ($nom == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'Nom no indicat'
+                'data' => 'Nom no indicat',
+                'code' => 401
             ]);
         }
         if ($cognom1 == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'Cognom1 no indicat'
+                'data' => 'Cognom1 no indicat',
+                'code' => 401
             ]);
         }
         if ($dni == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'dni no indicat'
+                'data' => 'dni no indicat',
+                'code' => 401
             ]);
         }
         if ($email == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'email no indicat'
+                'data' => 'email no indicat',
+                'code' => 401
             ]);
         }
         if ($telefon1 == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'telefon1 no indicat'
+                'data' => 'telefon1 no indicat',
+                'code' => 401
             ]);
         }
 
@@ -94,7 +99,8 @@ class ResponsableController extends AbstractController
                'telefon1' => $responsable->getTelefon1(),
                'telefon2' => $responsable->getTelefon2(),
                'participantNom' => $responsable->getParticipant()->getPersona()->getNom()
-           ]
+           ],
+            'code' => 200
         ]);
     }
 
