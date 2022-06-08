@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Monitor;
 use App\Entity\Persona;
+use App\Entity\User;
 use App\Repository\ActivitatProgramadaRepository;
 use App\Repository\MonitorRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -14,8 +15,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\Bridge\Google\Transport\GmailSmtpTransport;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Core\Security;
 
 
 class MonitorController extends AbstractController
@@ -103,7 +106,7 @@ class MonitorController extends AbstractController
                 'dni' => $monitor->getPersona()->getDNI(),
                 'llicencia' => $monitor->getLlicencia(),
                 'targetaSanitaria' => $monitor->getTargetaSanitaria(),
-                'email' => $monitor->getEmail()
+                'email' => $monitor->getUser()->getEmail()
             ];
         }
         $response->setData([
@@ -117,7 +120,7 @@ class MonitorController extends AbstractController
     /**
      * @Route("/monitors/{id}",methods={"GET"})
      */
-    public function getMonitor(MonitorRepository $monitorRepository, int $id): Response
+    public function getMonitor(MonitorRepository $monitorRepository, int $id, Security $security): Response
     {
         $response = new JsonResponse();
         $monitor = $monitorRepository->find($id);
@@ -130,12 +133,13 @@ class MonitorController extends AbstractController
             'dni' => $monitor->getPersona()->getDNI(),
             'llicencia' => $monitor->getLlicencia(),
             'targetaSanitaria' => $monitor->getTargetaSanitaria(),
-            'email' => $monitor->getEmail()
+            'email' => $monitor->getUser()->getEmail(),
+            'contrasenya' => $monitor->getUser()-> getPassword()
         ];
         $response->setData([
             'success' => true,
             'data' => $monitorsArray,
-            'code' => 401
+            'code' => 200
         ]);
         return $response;
     }
@@ -186,8 +190,9 @@ class MonitorController extends AbstractController
     /**
      * @Route("/monitors",methods={"POST"})
      */
-    public function addMonitor(Request $request, MonitorRepository $monitorRepository, ManagerRegistry $doctrine)
+    public function addMonitor(Request $request, MonitorRepository $monitorRepository, ManagerRegistry $doctrine, UserPasswordHasherInterface $passwordHasher)
     {
+
         $nom = $request->get('nom');
         $cognom1 = $request->get('cognom1');
         $cognom2 = $request->get('cognom2');
@@ -196,46 +201,58 @@ class MonitorController extends AbstractController
         $targetaSanitaria = $request->get('targetaSanitaria');
         $email = $request->get('email');
         $response = new JsonResponse();
-        if ($nom == null) {
-            return $response->setData([
-                'success' => false,
-                'data' => 'Nom no indicat',
-                'code' => 401
-            ]);
-        }
-        if ($cognom1 == null) {
-            return $response->setData([
-                'success' => false,
-                'data' => 'Cognom1 no indicat',
-                'code' => 401
-            ]);
-        }
-        if ($dni == null) {
-            return $response->setData([
-                'success' => false,
-                'data' => 'dni no indicat',
-                'code' => 401
-            ]);
-        }
-        if ($email == null) {
-            return $response->setData([
-                'success' => false,
-                'data' => 'email no indicat',
-                'code' => 401
-            ]);
-        }
+        
+       if ($nom == null) {
+           return $response->setData([
+               'success' => false,
+               'data' => 'Nom no indicat',
+               'code' => 401
+           ]);
+       }
+       if ($cognom1 == null) {
+           return $response->setData([
+               'success' => false,
+               'data' => 'Cognom1 no indicat',
+               'code' => 401
+           ]);
+       }
+       if ($dni == null) {
+           return $response->setData([
+               'success' => false,
+               'data' => 'dni no indicat',
+               'code' => 401
+           ]);
+       }
+       if ($email == null) {
+           return $response->setData([
+               'success' => false,
+               'data' => 'email no indicat',
+               'code' => 401
+           ]);
+       }
 
-        $monitor = new Monitor();
-        $persona = new Persona();
-        $persona->setNom($nom);
-        $persona->setCognom1($cognom1);
-        $persona->setCognom2($cognom2);
-        $persona->setDNI($dni);
-        $monitor->setPersona($persona);
-        $monitor->setEmail($email);
-        $monitor->setTargetaSanitaria($targetaSanitaria);
-        $monitor->setLlicencia($llicencia);
-        $monitor->setContrasenya(uniqid());
+       $monitor = new Monitor();
+       $persona = new Persona();
+       $user = new User();
+
+       $persona->setNom($nom);
+       $persona->setCognom1($cognom1);
+       $persona->setCognom2($cognom2);
+       $persona->setDNI($dni);
+
+       $monitor->setPersona($persona);
+       $monitor->setTargetaSanitaria($targetaSanitaria);
+       $monitor->setLlicencia($llicencia);
+
+       $user->setEmail($email);
+       $plaintextPassword = uniqid();
+       $hashedPassword = $passwordHasher->hashPassword(
+           $user,
+           $plaintextPassword
+       );
+       $user->setPassword($hashedPassword);
+       $monitor->setUser($user);
+
         $entityManager = $doctrine->getManager();
         $monitorRepository->add($monitor);
         $entityManager->flush();
@@ -244,8 +261,8 @@ class MonitorController extends AbstractController
             ->from('martilluisiker@gmail.com')
             ->to($email)
             ->subject("Credencials de Motxilla")
-            ->text("El teu email és: " . $email . "\n La teva contrasenya és: " .$monitor->getContrasenya());
-        $transport = new GmailSmtpTransport('martilluisiker', 'MartiIkerLluis');
+            ->text("El teu email és: " . $email . "\n La teva contrasenya és: " .$plaintextPassword);
+        $transport = new GmailSmtpTransport('motxillatfg', 'fmaytstkbbkizwum');
         $mailer = new Mailer($transport);
         $mailer->send($email);
         return $response->setData([
@@ -258,8 +275,8 @@ class MonitorController extends AbstractController
                 'dni' => $monitor->getPersona()->getDNI(),
                 'llicencia' => $monitor->getLlicencia(),
                 'targetaSanitaria' => $monitor->getTargetaSanitaria(),
-                'email' => $monitor->getEmail(),
-                'contrasenya' => $monitor->getContrasenya()
+                'email' => $monitor->getUser()->getEmail(),
+                'contrasenya' => $monitor->getUser()-> getPassword()
             ],
             'code' => 200
         ]);
@@ -300,7 +317,7 @@ class MonitorController extends AbstractController
             $monitor->setTargetaSanitaria($targetaSanitaria);
         }
         if ($email != null) {
-            $monitor->setEmail($email);
+            $monitor->getUser()->setEmail($email);
         }
         $entityManager = $doctrine->getManager();
         $monitorRepository->add($monitor);
@@ -315,43 +332,10 @@ class MonitorController extends AbstractController
                 'dni' => $monitor->getPersona()->getDNI(),
                 'llicencia' => $monitor->getLlicencia(),
                 'targetaSanitaria' => $monitor->getTargetaSanitaria(),
-                'email' => $monitor->getEmail(),
-                'contrasenya' => $monitor->getContrasenya()
+                'email' => $monitor->getUser()->getEmail()
+                //'contrasenya' => $monitor->getContrasenya()
             ],
             'code' => 200
-        ]);
-    }
-
-    /**
-     * @Route("/contrasenya", methods={"POST"})
-     */
-    public function canviarContrasenya(Request $request, MonitorRepository $monitorRepository, ManagerRegistry $doctrine)
-    {
-        $response = new JsonResponse();
-        $cont_actual = $request->get("actual");
-        $cont_nova = $request->get('nova');
-        if ($cont_actual == null) return $response->setData(['success' => false, 'description' => 'actual no indicat',  'code' => 401]);
-        if ($cont_nova == null) return $response->setData(['success' => false, 'description' => 'nova no indicat',  'code' => 401]);
-        $user = $monitorRepository->find(3);
-        $user->setContrasenya($cont_nova);
-        $entityManager = $doctrine->getManager();
-        $monitorRepository->add($user);
-        $entityManager->flush();
-
-        return $response->setData([
-            'success' => true,
-            'data' => [
-                'id' => $user->getId(),
-                'nom' => $user->getPersona()->getNom(),
-                'cognom1' => $user->getPersona()->getCognom1(),
-                'cognom2' => $user->getPersona()->getCognom2(),
-                'dni' => $user->getPersona()->getDNI(),
-                'llicencia' => $user->getLlicencia(),
-                'targetaSanitaria' => $user->getTargetaSanitaria(),
-                'email' => $user->getEmail(),
-                'contrasenya' => $user->getContrasenya()
-            ],
-            'code' => 401
         ]);
     }
 }

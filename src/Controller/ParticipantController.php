@@ -60,7 +60,7 @@ class ParticipantController extends AbstractController
             'cognom2' => $participant->getPersona()->getCognom2(),
             'dni' => $participant->getPersona()->getDNI(),
             'autoritzacio' => $participant->isAutoritzacio(),
-            'dataNaixement' => $participant->getDataNaixement(),
+            'dataNaixement' => $participant->getDataNaixement()->format("d/m/Y"),
             'targetaSanitaria' => $participant->getTargetaSanitaria(),
         ];
         $response->setData([

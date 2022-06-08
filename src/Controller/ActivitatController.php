@@ -32,8 +32,8 @@ class ActivitatController extends AbstractController
                 $activitatArray[] = [
                     'id' => $activitat->getId(),
                     'name' => $activitat->getNom(),
-                    'monitors' => $activitat -> getObjectiu(),
-                    'participants' => $activitat -> isInterior(),
+                    'objectiu' => $activitat -> getObjectiu(),
+                    'interior' => $activitat -> isInterior(),
                     'descripcio' => $activitat -> getDescripcio()
                 ];
             }
@@ -59,8 +59,8 @@ class ActivitatController extends AbstractController
         $activitatArray[] = [
             'id' => $activitat->getId(),
             'name' => $activitat->getNom(),
-            'monitors' => $activitat -> getObjectiu(),
-            'participants' => $activitat -> isInterior(),
+            'objectiu' => $activitat -> getObjectiu(),
+            'interior' => $activitat -> isInterior(),
             'descripcio' => $activitat -> getDescripcio()
         ];
         $response->setData([

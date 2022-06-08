@@ -74,7 +74,7 @@ class EquipController extends AbstractController
                 'nom' => $monitor->getPersona()->getNom(),
                 'cognom1' => $monitor->getPersona()->getCognom1(),
                 'cognon2' => $monitor->getPersona()->getCognom2(),
-                'email' => $monitor->getEmail(),
+                'email' => $monitor->getUser()->getEmail(),
                 'dni' => $monitor->getPersona()->getDNI(),
                 'llicencia' => $monitor->getLlicencia(),
                 'targetaSanitaria' => $monitor->getTargetaSanitaria()

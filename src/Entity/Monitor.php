@@ -15,12 +15,6 @@ class Monitor
     #[ORM\Column(type: 'integer')]
     private $id;
 
-    #[ORM\Column(type: 'string', length: 255)]
-    private $Email;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    private $Contrasenya;
-
     #[ORM\Column(type: 'integer', nullable: true)]
     private $Llicencia;
 
@@ -34,6 +28,10 @@ class Monitor
     #[ORM\ManyToMany(targetEntity: Equip::class, mappedBy: 'Monitors')]
     private $Equips;
 
+    #[ORM\ManyToOne(targetEntity: User::class, cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(nullable: false)]
+    private $User;
+
     public function __construct()
     {
         $this->Equips = new ArrayCollection();
@@ -42,30 +40,6 @@ class Monitor
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getEmail(): ?string
-    {
-        return $this->Email;
-    }
-
-    public function setEmail(string $Email): self
-    {
-        $this->Email = $Email;
-
-        return $this;
-    }
-
-    public function getContrasenya(): ?string
-    {
-        return $this->Contrasenya;
-    }
-
-    public function setContrasenya(string $Contrasenya): self
-    {
-        $this->Contrasenya = $Contrasenya;
-
-        return $this;
     }
 
     public function getLlicencia(): ?int
@@ -127,6 +101,18 @@ class Monitor
         if ($this->Equips->removeElement($equip)) {
             $equip->removeMonitor($this);
         }
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->User;
+    }
+
+    public function setUser(?User $User): self
+    {
+        $this->User = $User;
 
         return $this;
     }
