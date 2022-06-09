@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Repository\MonitorRepository;
 use App\Repository\UserRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -15,9 +16,12 @@ use Symfony\Component\Security\Core\Security;
 
 class AdminUserController extends AbstractController
 {
+    /*
     /**
      * @Route("/admin",methods={"POST"})
      */
+
+/*
     public function getParticipants(UserRepository $userRepository, ManagerRegistry $doctrine, UserPasswordHasherInterface $passwordHasher)
     {
         $response = new JsonResponse();
@@ -40,15 +44,15 @@ class AdminUserController extends AbstractController
         ]]);
         return $response;
     }
-
+*/
     /**
      * @Route("/contrasenya", methods={"POST"})
      */
     public function canviarContrasenya(Request $request, UserRepository $userRepository, ManagerRegistry $doctrine, Security $security, UserPasswordHasherInterface $passwordHasher)
     {
         $response = new JsonResponse();
-        $user = $userRepository->find($security->getUser());
-        //$user = $userRepository->find(2);
+        //$user = $userRepository->find($security->getUser());
+        $user = $userRepository->find(5);
         $cont_actual = $request->get("actual");
         $cont_nova = $request->get('nova');
         if ($cont_actual == null) return $response->setData(['success' => false, 'description' => 'actual no indicat',  'code' => 401]);
@@ -94,6 +98,28 @@ class AdminUserController extends AbstractController
         return $response->setData([
             'success' => true,
             'data' => $usersArray,
+            'code' => 200
+        ]);
+    }
+
+    /**
+     * @Route("/tokenid", methods={"GET"})
+     */
+    public function getId(ManagerRegistry $doctrine, Security $security, UserRepository $userRepository, Connection $connection){
+        $user = $userRepository->find($security->getUser());
+        $id = $user->getId();
+        $monitorid = $connection->createQueryBuilder()
+            ->select('m.id')
+            ->from('monitor', 'm')
+            ->where('user_id = :id')
+            ->setParameter('id',$id)
+            ->executeQuery()
+            ->fetchAllAssociative();
+        $response = new JsonResponse();
+        if (count($monitorid) != 0) $response->setData(['succes' => false, 'data' => 'Aquest usuari no és monitor', 'code' => 401]);
+        return $response->setData([
+            'success' => true,
+            'data' => $monitorid ,
             'code' => 200
         ]);
     }
