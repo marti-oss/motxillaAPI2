@@ -51,8 +51,8 @@ class AdminUserController extends AbstractController
     public function canviarContrasenya(Request $request, UserRepository $userRepository, ManagerRegistry $doctrine, Security $security, UserPasswordHasherInterface $passwordHasher)
     {
         $response = new JsonResponse();
-        //$user = $userRepository->find($security->getUser());
-        $user = $userRepository->find(5);
+        $user = $userRepository->find($security->getUser());
+        //$user = $userRepository->find(5);
         $cont_actual = $request->get("actual");
         $cont_nova = $request->get('nova');
         if ($cont_actual == null) return $response->setData(['success' => false, 'description' => 'actual no indicat',  'code' => 401]);
