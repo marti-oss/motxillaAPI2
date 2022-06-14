@@ -145,7 +145,7 @@ class MonitorController extends AbstractController
     }
 
     /**
-     * @Route("/monitors/{id}/equips")
+     * @Route("/monitors/{id}/equips", methods={"GET"})
      */
     public function getMonitorEquips(MonitorRepository $monitorRepository, int $id): Response
     {

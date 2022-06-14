@@ -229,11 +229,12 @@ class EquipController extends AbstractController
                 'code' => 401
             ]);
         }
+
         $equip->setNom($nom);
 
         $monitorsList = $request->get("idmonitors");
         if(str_contains($monitorsList,"-")) {
-            $monitorsIdArray = explode($monitorsList,'-');
+            $monitorsIdArray = explode('-',$monitorsList);
             foreach ($monitorsIdArray as $idMonitor){
                 $monitor = $monitorRepository->find($idMonitor);
                 if($monitor == null )return $response->setData(['success' => false, 'data' => "monitor no trobat",  'code' => 401]);
@@ -250,10 +251,10 @@ class EquipController extends AbstractController
         $participantsList = $request->get("idparticipants");
 
         if(str_contains($participantsList,"-")) {
-            $participantsIdArray = explode($participantsList,'-');
+            $participantsIdArray = explode('-',$participantsList);
             foreach ($participantsIdArray as $idParticipant){
                 $participant = $participantRepository->find($idParticipant);
-                if($participant == null )return $response->setData(['success' => false, 'data' => "monitor no trobada",  'code' => 401]);
+                if($participant == null )return $response->setData(['success' => false, 'data' => "participant amb id:". $idParticipant ."trobada",  'code' => 40000]);
                 $equip->addParticipant($participant);
                 $participant->setEquip($equip);
                 $participantRepository->add($participant);
