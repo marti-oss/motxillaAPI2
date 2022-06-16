@@ -89,7 +89,7 @@ class EquipController extends AbstractController
                 'cognon2' => $participant->getPersona()->getCognom2(),
                 'autoritzacio' => $participant->isAutoritzacio(),
                 'dni' => $participant->getPersona()->getDNI(),
-                'dataNaixement' => $participant->getDataNaixement(),
+                'dataNaixement' => $participant->getDataNaixement()->format("d/m/Y"),
                 'targetaSanitaria' => $participant->getTargetaSanitaria()
             ];
         }
@@ -472,6 +472,51 @@ class EquipController extends AbstractController
             ],
             'code' => 200
         ]);
+    }
+
+    /**
+     * @Route("/equips/{idEq}/monitors/{idMon}", methods={"DELETE"})
+     */
+    public function deleteMonitorDeLEquip(int $idEq, int $idMon, ManagerRegistry $doctrine, EquipRepository $equipRepository, MonitorRepository $monitorRepository){
+        $response = new JsonResponse();
+        $equip = $equipRepository->find($idEq);
+        if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip',  'code' => 401]);
+        $monitor = $monitorRepository->find($idMon);
+        if ($monitor == null) return $response->setData(['succes' => false, 'description' => 'No existeis monitor', 'code' => 401]);
+        $equip->removeMonitor($monitor);
+
+        $entityManager = $doctrine->getManager();
+        $equipRepository->add($equip);
+        $entityManager->flush();
+        $response->setData([
+            'success' => true,
+            'data' => "Esborrat monitor del equip correctament",
+            'code' => 200
+        ]);
+        return $response;
+    }
+
+    /**
+     * @Route("/equips/{idEq}/participants/{idPar}", methods={"DELETE"})
+     */
+    public function deleteParticipantDeLEquip(int $idEq, int $idPar, ManagerRegistry $doctrine, EquipRepository $equipRepository, ParticipantRepository $participantRepository) {
+        $response = new JsonResponse();
+        $equip = $equipRepository->find($idEq);
+        if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip',  'code' => 401]);
+        $participant = $participantRepository->find($idPar);
+        if ($participant == null) return $response->setData(['succes' => false, 'description' => 'No existeis participant', 'code' => 401]);
+        $equip->removeParticipant($participant);
+        $participant->setEquip(null);
+        $equipRepository->add($equip);
+        $participantRepository->add($participant);
+        $entityManager = $doctrine->getManager();
+        $entityManager->flush();
+        $response->setData([
+            'success' => true,
+            'data' => "Esborrat participant del equip correctament",
+            'code' => 200
+        ]);
+        return $response;
     }
 
 }
