@@ -404,6 +404,37 @@ class EquipController extends AbstractController
     }
 
     /**
+     * @Route("/equips/{id}/activitatsprogramades",methods={"GET"})
+     */
+    public function getActivitatsProgramades(int $id, Request $request, EquipRepository $equipRepository,ActivitatProgramadaRepository $activitatProgramadaRepository ){
+        $response = new JsonResponse();
+        $equip = $equipRepository->find($id);
+        if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip',  'code' => 401]);
+        $list = $equip->getActivitatsProgramades()->getValues();
+        $act = [];
+        foreach ($list as $a) {
+            $act[] = [
+                'id' => $a->getId(),
+                'nom' => $a->getNom(),
+                'objectiu' => $a->getObjectiu(),
+                'interior' => $a->isInterior(),
+                'descripcio' => $a->getDescripcio(),
+                'dataIni' => $a->getDataIni(),
+                'dataFi' => $a->getDataFi(),
+            ];
+        }
+
+        return $response->setData([
+            'success' => true,
+            'data' => [
+                'idEquip' => $equip->getId(),
+                'activitatprogramada' => $act
+            ],
+            'code' => 200
+        ]);
+    }
+
+    /**
      * @Route("/equips/{idEq}/activitatsprogramades/{idAct}",methods={"PUT"})
      */
     public function editActivitatProgramada(int                           $idEq, int $idAct, Request $request, ManagerRegistry $doctrine,
