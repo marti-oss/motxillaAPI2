@@ -56,6 +56,39 @@ class MonitorController extends AbstractController
     }
 
     /**
+     * @Route ("/monitors/{id}/activitatsprogramades/{dia}", methods={"GET"})
+     */
+    public function getActivitatsProgamadesDia(int $id, String $dia ,MonitorRepository $monitorRepository, ActivitatProgramadaRepository $activitatProgramadaRepository) {
+        $response = new JsonResponse();
+        $monitor = $monitorRepository->find($id);
+        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'El monitor no existeix',  'code' => 401]);
+        $equips = $monitor->getEquips();
+        $activitatsProgramadesArray = [];
+        foreach ($equips as $equip) {
+            $activitats = $equip->getActivitatsProgramades();
+            foreach ($activitats as $activitat) {
+                if($dia == $activitat->getDataIni()->format("Y-m-d")){
+                    $activitatsProgramadesArray[] = [
+                        'id' => $activitat->getId(),
+                        'nom' => $activitat->getNom(),
+                        'objectiu' => $activitat->getObjectiu(),
+                        'interior' => $activitat->isInterior(),
+                        'descripcio' => $activitat->getDescripcio(),
+                        'dataIni' => $activitat->getDataIni(),
+                        'dataFi' => $activitat->getDataFi(),
+                    ];
+                }
+            }
+        }
+        $response->setData([
+            'success' => true,
+            'data' => $activitatsProgramadesArray,
+            'code' => 200
+        ]);
+        return $response;
+    }
+
+    /**
      * @Route("/monitors/{idMonitor}/activitatsprogramades/{idActivitat}")
      */
     public function getActivitatsProgramadaMonitor(int $idMonitor, MonitorRepository $monitorRepository, int $idActivitat, ActivitatProgramadaRepository $activitatProgramadaRepository): Response
