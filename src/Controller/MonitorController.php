@@ -17,7 +17,6 @@ use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 
 
@@ -30,7 +29,7 @@ class MonitorController extends AbstractController
     {
         $response = new JsonResponse();
         $monitor = $monitorRepository->find($id);
-        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'El monitor no existeix',  'code' => 401]);
+        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'El monitor no existeix', 'code' => 401]);
         $equips = $monitor->getEquips();
         $activitatsProgramadesArray = [];
         foreach ($equips as $equip) {
@@ -58,16 +57,17 @@ class MonitorController extends AbstractController
     /**
      * @Route ("/monitors/{id}/activitatsprogramades/{dia}", methods={"GET"})
      */
-    public function getActivitatsProgamadesDia(int $id, String $dia ,MonitorRepository $monitorRepository, ActivitatProgramadaRepository $activitatProgramadaRepository) {
+    public function getActivitatsProgamadesDia(int $id, string $dia, MonitorRepository $monitorRepository, ActivitatProgramadaRepository $activitatProgramadaRepository)
+    {
         $response = new JsonResponse();
         $monitor = $monitorRepository->find($id);
-        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'El monitor no existeix',  'code' => 401]);
+        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'El monitor no existeix', 'code' => 401]);
         $equips = $monitor->getEquips();
         $activitatsProgramadesArray = [];
         foreach ($equips as $equip) {
             $activitats = $equip->getActivitatsProgramades();
             foreach ($activitats as $activitat) {
-                if($dia == $activitat->getDataIni()->format("Y-m-d")){
+                if ($dia == $activitat->getDataIni()->format("Y-m-d")) {
                     $activitatsProgramadesArray[] = [
                         'id' => $activitat->getId(),
                         'nom' => $activitat->getNom(),
@@ -95,7 +95,7 @@ class MonitorController extends AbstractController
     {
         $response = new JsonResponse();
         $monitor = $monitorRepository->find($idMonitor);
-        if ($monitor == null) return $response->setData(['success' => false, 'description' => "Monitor no existeix",  'code' => 401]);
+        if ($monitor == null) return $response->setData(['success' => false, 'description' => "Monitor no existeix", 'code' => 401]);
         $equips = $monitor->getEquips();
         $activitatProgramada = $activitatProgramadaRepository->find($idActivitat);
         if ($activitatProgramada != null) {
@@ -157,7 +157,7 @@ class MonitorController extends AbstractController
     {
         $response = new JsonResponse();
         $monitor = $monitorRepository->find($id);
-        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'No existeix monitor',  'code' => 401]);
+        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'No existeix monitor', 'code' => 401]);
         $monitorsArray = [
             'id' => $monitor->getId(),
             'nom' => $monitor->getPersona()->getNom(),
@@ -167,7 +167,7 @@ class MonitorController extends AbstractController
             'llicencia' => $monitor->getLlicencia(),
             'targetaSanitaria' => $monitor->getTargetaSanitaria(),
             'email' => $monitor->getUser()->getEmail(),
-            'contrasenya' => $monitor->getUser()-> getPassword()
+            'contrasenya' => $monitor->getUser()->getPassword()
         ];
         $response->setData([
             'success' => true,
@@ -184,7 +184,7 @@ class MonitorController extends AbstractController
     {
         $response = new JsonResponse();
         $monitor = $monitorRepository->find($id);
-        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'No existeix monitor',  'code' => 401]);
+        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'No existeix monitor', 'code' => 401]);
         $equips = $monitor->getEquips()->getValues();
         $equipArray = [];
         foreach ($equips as $equip) {
@@ -208,7 +208,7 @@ class MonitorController extends AbstractController
     {
         $response = new JsonResponse();
         $monitor = $monitorRepository->find($id);
-        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'No existeix monitor',  'code' => 401]);
+        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'No existeix monitor', 'code' => 401]);
         $entityManager = $doctrine->getManager();
         $monitorRepository->remove($monitor);
         $entityManager->flush();
@@ -234,57 +234,57 @@ class MonitorController extends AbstractController
         $targetaSanitaria = $request->get('targetaSanitaria');
         $email = $request->get('email');
         $response = new JsonResponse();
-        
-       if ($nom == null) {
-           return $response->setData([
-               'success' => false,
-               'data' => 'Nom no indicat',
-               'code' => 401
-           ]);
-       }
-       if ($cognom1 == null) {
-           return $response->setData([
-               'success' => false,
-               'data' => 'Cognom1 no indicat',
-               'code' => 401
-           ]);
-       }
-       if ($dni == null) {
-           return $response->setData([
-               'success' => false,
-               'data' => 'dni no indicat',
-               'code' => 401
-           ]);
-       }
-       if ($email == null) {
-           return $response->setData([
-               'success' => false,
-               'data' => 'email no indicat',
-               'code' => 401
-           ]);
-       }
 
-       $monitor = new Monitor();
-       $persona = new Persona();
-       $user = new User();
+        if ($nom == null) {
+            return $response->setData([
+                'success' => false,
+                'data' => 'Nom no indicat',
+                'code' => 401
+            ]);
+        }
+        if ($cognom1 == null) {
+            return $response->setData([
+                'success' => false,
+                'data' => 'Cognom1 no indicat',
+                'code' => 401
+            ]);
+        }
+        if ($dni == null) {
+            return $response->setData([
+                'success' => false,
+                'data' => 'dni no indicat',
+                'code' => 401
+            ]);
+        }
+        if ($email == null) {
+            return $response->setData([
+                'success' => false,
+                'data' => 'email no indicat',
+                'code' => 401
+            ]);
+        }
 
-       $persona->setNom($nom);
-       $persona->setCognom1($cognom1);
-       $persona->setCognom2($cognom2);
-       $persona->setDNI($dni);
+        $monitor = new Monitor();
+        $persona = new Persona();
+        $user = new User();
 
-       $monitor->setPersona($persona);
-       $monitor->setTargetaSanitaria($targetaSanitaria);
-       $monitor->setLlicencia($llicencia);
+        $persona->setNom($nom);
+        $persona->setCognom1($cognom1);
+        $persona->setCognom2($cognom2);
+        $persona->setDNI($dni);
 
-       $user->setEmail($email);
-       $plaintextPassword = uniqid();
-       $hashedPassword = $passwordHasher->hashPassword(
-           $user,
-           $plaintextPassword
-       );
-       $user->setPassword($hashedPassword);
-       $monitor->setUser($user);
+        $monitor->setPersona($persona);
+        $monitor->setTargetaSanitaria($targetaSanitaria);
+        $monitor->setLlicencia($llicencia);
+
+        $user->setEmail($email);
+        $plaintextPassword = uniqid();
+        $hashedPassword = $passwordHasher->hashPassword(
+            $user,
+            $plaintextPassword
+        );
+        $user->setPassword($hashedPassword);
+        $monitor->setUser($user);
 
         $entityManager = $doctrine->getManager();
         $monitorRepository->add($monitor);
@@ -294,7 +294,7 @@ class MonitorController extends AbstractController
             ->from('martilluisiker@gmail.com')
             ->to($email)
             ->subject("Credencials de Motxilla")
-            ->text("El teu email és: " . $email . "\n La teva contrasenya és: " .$plaintextPassword);
+            ->text("El teu email és: " . $email . "\n La teva contrasenya és: " . $plaintextPassword);
         $transport = new GmailSmtpTransport('motxillatfg', 'fmaytstkbbkizwum');
         $mailer = new Mailer($transport);
         $mailer->send($email);
@@ -309,7 +309,7 @@ class MonitorController extends AbstractController
                 'llicencia' => $monitor->getLlicencia(),
                 'targetaSanitaria' => $monitor->getTargetaSanitaria(),
                 'email' => $monitor->getUser()->getEmail(),
-                'contrasenya' => $monitor->getUser()-> getPassword()
+                'contrasenya' => $monitor->getUser()->getPassword()
             ],
             'code' => 200
         ]);
@@ -322,7 +322,7 @@ class MonitorController extends AbstractController
     {
         $response = new JsonResponse();
         $monitor = $monitorRepository->find($id);
-        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'No existeix monitor',  'code' => 401]);
+        if ($monitor == null) return $response->setData(['success' => false, 'description' => 'No existeix monitor', 'code' => 401]);
         $nom = $request->get('nom');
         $cognom1 = $request->get('cognom1');
         $cognom2 = $request->get('cognom2');

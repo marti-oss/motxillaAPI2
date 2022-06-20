@@ -17,13 +17,13 @@ class ResponsableController extends AbstractController
     /**
      * @Route("/responsables", methods={"POST"})
      */
-    public function postResponsable(Request $request, ResponsableRepository $responsableRepository,
+    public function postResponsable(Request               $request, ResponsableRepository $responsableRepository,
                                     ParticipantRepository $participantRepository, ManagerRegistry $doctrine)
     {
         $response = new JsonResponse();
         $idPart = $request->get('idParticipant');
         $participant = $participantRepository->find($idPart);
-        if($participant == null) return $response->setData(['succes'=>false, 'data'=>"Participant no trobat", 'code' => 401 ]);
+        if ($participant == null) return $response->setData(['succes' => false, 'data' => "Participant no trobat", 'code' => 401]);
 
         $nom = $request->get('nom');
         $cognom1 = $request->get('cognom1');
@@ -88,18 +88,18 @@ class ResponsableController extends AbstractController
 
 
         return $response->setData([
-           'success'=>true,
-           'data' => [
-               'id'=> $responsable->getId(),
-               'nom' => $responsable->getPersona()->getNom(),
-               'cognom1' => $responsable->getPersona()->getCognom1(),
-               'cognom2' => $responsable->getPersona()->getCognom2(),
-               'dni' => $responsable->getPersona()->getDNI(),
-               'email' => $responsable->getEmail(),
-               'telefon1' => $responsable->getTelefon1(),
-               'telefon2' => $responsable->getTelefon2(),
-               'participantNom' => $responsable->getParticipant()->getPersona()->getNom()
-           ],
+            'success' => true,
+            'data' => [
+                'id' => $responsable->getId(),
+                'nom' => $responsable->getPersona()->getNom(),
+                'cognom1' => $responsable->getPersona()->getCognom1(),
+                'cognom2' => $responsable->getPersona()->getCognom2(),
+                'dni' => $responsable->getPersona()->getDNI(),
+                'email' => $responsable->getEmail(),
+                'telefon1' => $responsable->getTelefon1(),
+                'telefon2' => $responsable->getTelefon2(),
+                'participantNom' => $responsable->getParticipant()->getPersona()->getNom()
+            ],
             'code' => 200
         ]);
     }

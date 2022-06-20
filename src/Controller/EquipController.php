@@ -4,21 +4,20 @@ namespace App\Controller;
 
 use App\Entity\ActivitatProgramada;
 use App\Entity\Equip;
-use App\Entity\Monitor;
 use App\Repository\ActivitatProgramadaRepository;
-use App\Repository\ActivitatRepository;
 use App\Repository\EquipRepository;
 use App\Repository\MonitorRepository;
 use App\Repository\ParticipantRepository;
 use App\Repository\ResponsableRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\Persistence\ManagerRegistry;
-use phpDocumentor\Reflection\Types\Null_;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Mailer\Bridge\Google\Transport\GmailSmtpTransport;
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Annotation\Route;
-use Doctrine\ORM\EntityManagerInterface;
 
 class EquipController extends AbstractController
 {
@@ -27,10 +26,11 @@ class EquipController extends AbstractController
      */
     public function getEquips(Request $request, EquipRepository $repository)
     {
-        $id = $request->get('id');
+        $response = new JsonResponse();
+
         $equipArray = [];
-        if ($id != null) {
-            $equip = $repository->find($id);
+        $equips = $repository->findAll();
+        foreach ($equips as $equip) {
             $equipArray[] = [
                 'id' => $equip->getId(),
                 'nom' => $equip->getNom(),
@@ -38,18 +38,7 @@ class EquipController extends AbstractController
                 'participants' => $equip->getParticipants()
             ];
         }
-        if ($id == null) {
-            $equips = $repository->findAll();
-            foreach ($equips as $equip) {
-                $equipArray[] = [
-                    'id' => $equip->getId(),
-                    'nom' => $equip->getNom(),
-                    'monitors' => $equip->getMonitors(),
-                    'participants' => $equip->getParticipants()
-                ];
-            }
-        }
-        $response = new JsonResponse();
+
         $response->setData([
             'success' => true,
             'data' => $equipArray,
@@ -67,6 +56,7 @@ class EquipController extends AbstractController
         $equipArray = [];
         $equip = $repository->find($id);
         if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip' ,  'code' => 401]);
+
         $monitorsArray = [];
         foreach ($equip->getMonitors() as $monitor) {
             $monitorsArray[] = [
@@ -109,20 +99,28 @@ class EquipController extends AbstractController
     }
 
     /**
-     * @Route("/equips/{id}/emails")
+     * @Route("/equips/{id}/emails", methods={"POST"})
      */
-    public function getEmails(int $id, EquipRepository $equipRepository, ParticipantRepository $participantRepository, ResponsableRepository $responsableRepository)
+    public function sendEmails(int $id, Request $request,EquipRepository $equipRepository, ParticipantRepository $participantRepository, ResponsableRepository $responsableRepository)
     {
         $response = new JsonResponse();
         $equipArray = [];
         $equip = $equipRepository->find($id);
         if ($equip == null) return $response->setData(['success' => false, 'description' => 'No existeix l\'equip',  'code' => 401]);
-        $participants = $participantRepository->findBy(['equip' => $equip]);
-        $reponsables = $responsableRepository->findBy(['participant' => $participants]);
+        $participants = $participantRepository->findBy(array('Equip' => $equip->getId()));
+        $reponsables = $responsableRepository->findBy(['Participant' => $participants]);
+
+        $asumpte = $request->get('asumpte');
+        $contingut = $request->get('contingut');
         foreach ($reponsables as $reponsable) {
-            $equipArray[] = [
-                'email' => $reponsable->getEmail(),
-            ];
+            $email = (new Email())
+                ->from('motxillatfg@gmail.com')
+                ->to($reponsable->getEmail())
+                ->subject($asumpte)
+                ->text($contingut);
+            $transport = new GmailSmtpTransport('motxillatfg', 'fmaytstkbbkizwum');
+            $mailer = new Mailer($transport);
+            $mailer->send($email);
         }
 
         $response->setData([
@@ -144,7 +142,7 @@ class EquipController extends AbstractController
         if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip',  'code' => 401]);
 
         $entityManager = $doctrine->getManager();
-        //borrar activitat programada
+
         $activitatProgramadaIds = $connection->createQueryBuilder()
             ->select('acp.id')
             ->from('activitat_programada','acp')
@@ -152,12 +150,12 @@ class EquipController extends AbstractController
             ->setParameter('id',$id)
             ->executeQuery()
             ->fetchAllAssociative();
+
         foreach ($activitatProgramadaIds as $activitatProgramadaId){
             $activitatProgramada = $activitatProgramadaRepository->find($activitatProgramadaId);
             $activitatProgramadaRepository->remove($activitatProgramada);
         }
 
-        //Posar a null participant
         $participantsId = $connection->createQueryBuilder()
             ->select('p.id')
             ->from('participant', 'p')
@@ -165,6 +163,7 @@ class EquipController extends AbstractController
             ->setParameter('id',$id)
             ->executeQuery()
             ->fetchAllAssociative();
+
         foreach ($participantsId as $participantId){
             $participant = $participantRepository->find($participantId);
             $participant->setEquip(null);
@@ -173,6 +172,7 @@ class EquipController extends AbstractController
 
         $repository->remove($equip);
         $entityManager->flush();
+
         $response->setData([
             'success' => true,
             'data' => "Esborrat correctament",
@@ -190,6 +190,7 @@ class EquipController extends AbstractController
         $response = new JsonResponse();
         $equip = $equipRepository->find($idEquip);
         if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip',  'code' => 401]);
+
         $activitats = $equip->getActivitatsProgramades()->getValues();
         foreach ($activitats as $activitat) {
             if ($activitat->getId() == $idActivitat) {
@@ -259,8 +260,7 @@ class EquipController extends AbstractController
                 $participant->setEquip($equip);
                 $participantRepository->add($participant);
             }
-        }
-        else {
+        } else {
             $participant = $participantRepository->find($participantsList);
             if($participant == null )return $response->setData(['success' => false, 'data' => "monitor no trobada",  'code' => 401]);
             $participant->setEquip($equip);
@@ -287,15 +287,18 @@ class EquipController extends AbstractController
     public function editEquip(int $id, Request $request, EquipRepository $equipRepository, ManagerRegistry $doctrine)
     {
         $response = new JsonResponse();
+
         $equip = $equipRepository->find($id);
         if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip',  'code' => 401]);
         $nom = $request->get('nom');
         if ($nom != null) {
             $equip->setNom($nom);
         }
+
         $entityManager = $doctrine->getManager();
         $equipRepository->add($equip);
         $entityManager->flush();
+
         return $response->setData([
             'success' => true,
             'data' => [
@@ -314,6 +317,7 @@ class EquipController extends AbstractController
         $response = new JsonResponse();
         $equip = $equipRepository->find($id);
         if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip',  'code' => 401]);
+
         $dataIni = $request->get('dataIni');
         $dataFi = $request->get('dataFi');
         $nom = $request->get('nom');
@@ -364,6 +368,7 @@ class EquipController extends AbstractController
                 'code' => 401
             ]);
         }
+
         $activitatprogramada = new ActivitatProgramada();
         $activitatprogramada->setNom($nom);
         $activitatprogramada->setDataIni($timeIni);
@@ -408,8 +413,10 @@ class EquipController extends AbstractController
      */
     public function getActivitatsProgramades(int $id, Request $request, EquipRepository $equipRepository,ActivitatProgramadaRepository $activitatProgramadaRepository ){
         $response = new JsonResponse();
+
         $equip = $equipRepository->find($id);
         if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip',  'code' => 401]);
+
         $list = $equip->getActivitatsProgramades()->getValues();
         $act = [];
         foreach ($list as $a) {

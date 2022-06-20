@@ -70,6 +70,7 @@ class ParticipantController extends AbstractController
         ]);
         return $response;
     }
+
     /**
      * @Route("/participants/{id}/responsables",methods={"GET"})
      */
@@ -83,7 +84,7 @@ class ParticipantController extends AbstractController
         foreach ($responsables as $responsable) {
             if ($responsable->getParticipant()->getId() == $participant->getId())
                 $responsableList[] = [
-                    'id'=> $responsable->getId(),
+                    'id' => $responsable->getId(),
                     'nom' => $responsable->getPersona()->getNom(),
                     'cognom1' => $responsable->getPersona()->getCognom1(),
                     'cognom2' => $responsable->getPersona()->getCognom2(),
@@ -91,7 +92,7 @@ class ParticipantController extends AbstractController
                     'email' => $responsable->getEmail(),
                     'telefon1' => $responsable->getTelefon1(),
                     'telefon2' => $responsable->getTelefon2()
-            ];
+                ];
         }
         return $response->setData([
             'success' => true,
@@ -110,15 +111,15 @@ class ParticipantController extends AbstractController
         if ($participant == null) return $response->setData(['success' => false, 'description' => 'Participant no trobat delete', 'code' => 401]);
 
         $responsablesId = $connection->createQueryBuilder()
-           ->select('r.id')
-            ->from('responsable','r')
-           ->where('participant_id = :id ')
-           ->setParameter('id',$id)
-           ->executeQuery()
+            ->select('r.id')
+            ->from('responsable', 'r')
+            ->where('participant_id = :id ')
+            ->setParameter('id', $id)
+            ->executeQuery()
             ->fetchAllAssociative();
 
         $entityManager = $doctrine->getManager();
-        foreach ($responsablesId as $responsableId){
+        foreach ($responsablesId as $responsableId) {
             $responsable = $responsableRepository->find($responsableId);
             $responsableRepository->remove($responsable);
         }
@@ -135,8 +136,8 @@ class ParticipantController extends AbstractController
     /**
      * @Route("/participants", methods={"POST"})
      */
-    public function addParticipants(Request $request, ParticipantRepository $participantRepository,
-                                    ResponsableRepository $responsableRepository,ManagerRegistry $doctrine)
+    public function addParticipants(Request               $request, ParticipantRepository $participantRepository,
+                                    ResponsableRepository $responsableRepository, ManagerRegistry $doctrine)
     {
         $response = new JsonResponse();
         $nom = $request->get('nom');
@@ -214,8 +215,8 @@ class ParticipantController extends AbstractController
         $telefon1 = $request->get('res1telefon1');
         $telefon2 = $request->get('res1telefo2');
         $email = $request->get('res1email');
-        $this->postResponsable($participant->getId(),$nom,$cognom1,$dni,$telefon1,$email,
-            $responsableRepository,$participantRepository,$doctrine,$cognom2,$telefon2);
+        $this->postResponsable($participant->getId(), $nom, $cognom1, $dni, $telefon1, $email,
+            $responsableRepository, $participantRepository, $doctrine, $cognom2, $telefon2);
         /*
         $nom = $request->get('res2nom');
         $cognom1 = $request->get('res2cognom1');
@@ -243,15 +244,15 @@ class ParticipantController extends AbstractController
         ]);
     }
 
-    private function postResponsable(int $idPart,string $nom, string $cognom1,
-                                     string $dni, int $telefon1,
-                                     string $email,ResponsableRepository $responsableRepository,
-                                    ParticipantRepository $participantRepository, ManagerRegistry $doctrine,
-                                     string $cognom2=null,int $telefon2 = null,)
+    private function postResponsable(int                   $idPart, string $nom, string $cognom1,
+                                     string                $dni, int $telefon1,
+                                     string                $email, ResponsableRepository $responsableRepository,
+                                     ParticipantRepository $participantRepository, ManagerRegistry $doctrine,
+                                     string                $cognom2 = null, int $telefon2 = null,)
     {
         $response = new JsonResponse();
         $participant = $participantRepository->find($idPart);
-        if($participant == null) return $response->setData(['succes'=>false, 'data'=>"Participant no trobat" ,'code' => 401]);
+        if ($participant == null) return $response->setData(['succes' => false, 'data' => "Participant no trobat", 'code' => 401]);
 
         if ($nom == null) {
             return $response->setData([
@@ -307,9 +308,9 @@ class ParticipantController extends AbstractController
 
 
         return $response->setData([
-            'success'=>true,
+            'success' => true,
             'data' => [
-                'id'=> $responsable->getId(),
+                'id' => $responsable->getId(),
                 'nom' => $responsable->getPersona()->getNom(),
                 'cognom1' => $responsable->getPersona()->getCognom1(),
                 'cognom2' => $responsable->getPersona()->getCognom2(),
@@ -343,7 +344,7 @@ class ParticipantController extends AbstractController
         if ($cognom1 != null) {
             $participant->getPersona()->setCognom1($cognom1);
         }
-        if ($cognom2 != null){
+        if ($cognom2 != null) {
             $participant->getPersona()->setCognom2($cognom2);
         }
         if ($dni != null) {
@@ -380,7 +381,7 @@ class ParticipantController extends AbstractController
     /**
      * @Route("/participants/{idPart}/responsables/{idRes}",methods={"PUT"})
      */
-    public function editResponsables(Request $request,int $idPart, int $idRes, ParticipantRepository $participantRepository, ResponsableRepository $responsableRepository,ManagerRegistry $doctrine)
+    public function editResponsables(Request $request, int $idPart, int $idRes, ParticipantRepository $participantRepository, ResponsableRepository $responsableRepository, ManagerRegistry $doctrine)
     {
         $response = new JsonResponse();
         $participant = $participantRepository->find($idPart);
@@ -400,7 +401,7 @@ class ParticipantController extends AbstractController
         if ($cognom1 != null) {
             $responsable->getPersona()->setCognom1($cognom1);
         }
-        if ($cognom2 != null){
+        if ($cognom2 != null) {
             $responsable->getPersona()->setCognom2($cognom2);
         }
         if ($dni != null) {
@@ -423,7 +424,7 @@ class ParticipantController extends AbstractController
         return $response->setData([
             'success' => true,
             'data' => [
-                'id'=> $responsable->getId(),
+                'id' => $responsable->getId(),
                 'nom' => $responsable->getPersona()->getNom(),
                 'cognom1' => $responsable->getPersona()->getCognom1(),
                 'cognom2' => $responsable->getPersona()->getCognom2(),
