@@ -43,10 +43,9 @@ class ActivitatController extends AbstractController
     public function getActivitat(int $id, ActivitatRepository $repository)
     {
         $response = new JsonResponse();
-        $activitatArray = [];
         $activitat = $repository->find($id);
         if ($activitat == null) return $response->setData(['success' => false, 'description' => 'Activitat no existeix', 'code' => 401]);
-        $activitatArray[] = [
+        $activitatArray = [
             'id' => $activitat->getId(),
             'name' => $activitat->getNom(),
             'objectiu' => $activitat->getObjectiu(),
