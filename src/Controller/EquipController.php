@@ -26,6 +26,7 @@ class EquipController extends AbstractController
      */
     public function getEquips(Request $request, EquipRepository $repository)
     {
+        //fet
         $response = new JsonResponse();
 
         $equipArray = [];
@@ -50,6 +51,7 @@ class EquipController extends AbstractController
      */
     public function getEquip(int $id, EquipRepository $repository)
     {
+        //fet
         $response = new JsonResponse();
         $equipArray = [];
         $equip = $repository->find($id);
@@ -438,78 +440,7 @@ class EquipController extends AbstractController
             'code' => 200
         ]);
     }
-
-    /**
-     * @Route("/equips/{idEq}/activitatsprogramades/{idAct}",methods={"PUT"})
-     */
-    public function editActivitatProgramada(int                           $idEq, int $idAct, Request $request, ManagerRegistry $doctrine,
-                                            ActivitatProgramadaRepository $activitatProgramadaRepository, EquipRepository $equipRepository)
-    {
-        $response = new JsonResponse();
-        $equip = $equipRepository->find($idEq);
-        if ($equip == null) return $response->setData(['succes' => false, 'description' => 'No existeix l\'equip',  'code' => 401]);
-        $actProg = $activitatProgramadaRepository->find($idAct);
-        if ($actProg == null) return $response->setData(['succes' => false, 'description' => 'No existeix activitatProgramada',  'code' => 401]);
-        if ($actProg->getEquip() != $equip) return $response->setData(['succes' => false, 'description' => 'ActivitatProgramada no pertany a l?Equip',  'code' => 401]);
-
-        $dataIni = $request->get('dataIni');
-        $dataFi = $request->get('dataFi');
-
-        $nom = $request->get('nom');
-        $objectiu = $request->get('objectiu');
-        $interior = $request->get('interior');
-        $descripcio = $request->get('descripcio');
-
-        if ($nom != null)
-            $actProg->setNom($nom);
-        if ($dataIni != null) {
-            $timeIni = new \DateTime($dataIni);
-            $actProg->setDataIni($timeIni);
-        }
-        if ($dataFi != null) {
-            $timeFi = new \DateTime($dataFi);
-            $actProg->setDataFi($timeFi);
-        }
-        if ($descripcio != null)
-            $actProg->setDescripcio($descripcio);
-        if ($objectiu != null)
-            $actProg->setObjectiu($objectiu);
-        if ($interior != null)
-            $actProg->setInterior($interior);
-
-        if ($actProg->getDataIni() > $actProg->getDataFi())
-            return $response->setData(['success' => false, 'data' => 'dataIni posterior a dataFi',  'code' => 401]);
-        $equip->addActivitatsProgramade($actProg);
-
-        $entityManager = $doctrine->getManager();
-        $activitatProgramadaRepository->add($actProg);
-        $equipRepository->add($equip);
-        $entityManager->flush();
-
-
-        $act = [];
-        $list = $equip->getActivitatsProgramades()->getValues();
-        foreach ($list as $a) {
-            $act[] = [
-                'id' => $a->getId(),
-                'objectiu' => $a->getObjectiu(),
-                'interior' => $a->isInterior(),
-                'descripcio' => $a->getDescripcio(),
-                'dataIni' => $a->getDataIni(),
-                'dataFi' => $a->getDataFi(),
-            ];
-        }
-
-        return $response->setData([
-            'success' => true,
-            'data' => [
-                'idEquip' => $equip->getId(),
-                'activitatprogramada' => $act
-            ],
-            'code' => 200
-        ]);
-    }
-
+    
     /**
      * @Route("/equips/{idEq}/monitors/{idMon}", methods={"DELETE"})
      */

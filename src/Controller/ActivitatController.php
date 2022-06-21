@@ -17,6 +17,7 @@ class ActivitatController extends AbstractController
      */
     public function getActivitats(ActivitatRepository $repository)
     {
+        //fet
         $activitatArray = [];
         $activitats = $repository->findAll();
         foreach ($activitats as $activitat) {

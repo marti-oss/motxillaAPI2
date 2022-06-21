@@ -89,40 +89,6 @@ class MonitorController extends AbstractController
     }
 
     /**
-     * @Route("/monitors/{idMonitor}/activitatsprogramades/{idActivitat}")
-     */
-    public function getActivitatsProgramadaMonitor(int $idMonitor, MonitorRepository $monitorRepository, int $idActivitat, ActivitatProgramadaRepository $activitatProgramadaRepository): Response
-    {
-        $response = new JsonResponse();
-        $monitor = $monitorRepository->find($idMonitor);
-        if ($monitor == null) return $response->setData(['success' => false, 'description' => "Monitor no existeix", 'code' => 401]);
-        $equips = $monitor->getEquips();
-        $activitatProgramada = $activitatProgramadaRepository->find($idActivitat);
-        if ($activitatProgramada != null) {
-            $activitatsProgramadesArray = [];
-            foreach ($equips as $equip) {
-                if ($equip->getActivitatsProgramades()->contains($activitatProgramada))
-                    $activitatsProgramadesArray[] = [
-                        'id' => $activitatProgramada->getId(),
-                        'nom' => $activitatProgramada->getNom(),
-                        'objectiu' => $activitatProgramada->getObjectiu(),
-                        'interior' => $activitatProgramada->isInterior(),
-                        'descripcio' => $activitatProgramada->getDescripcio(),
-                        'dataIni' => $activitatProgramada->getDataIni(),
-                        'dataFi' => $activitatProgramada->getDataFi(),
-                    ];
-            }
-        }
-
-        $response->setData([
-            'success' => true,
-            'data' => $activitatsProgramadesArray,
-            'code' => 200
-        ]);
-        return $response;
-    }
-
-    /**
      * @Route("/monitors/",methods={"GET"})
      */
     public function getMonitors(MonitorRepository $monitorRepository): Response
@@ -166,8 +132,7 @@ class MonitorController extends AbstractController
             'dni' => $monitor->getPersona()->getDNI(),
             'llicencia' => $monitor->getLlicencia(),
             'targetaSanitaria' => $monitor->getTargetaSanitaria(),
-            'email' => $monitor->getUser()->getEmail(),
-            'contrasenya' => $monitor->getUser()->getPassword()
+            'email' => $monitor->getUser()->getEmail()
         ];
         $response->setData([
             'success' => true,

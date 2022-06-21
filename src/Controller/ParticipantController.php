@@ -136,8 +136,7 @@ class ParticipantController extends AbstractController
     /**
      * @Route("/participants", methods={"POST"})
      */
-    public function addParticipants(Request               $request, ParticipantRepository $participantRepository,
-                                    ResponsableRepository $responsableRepository, ManagerRegistry $doctrine)
+    public function addParticipants(Request $request, ParticipantRepository $participantRepository, ResponsableRepository $responsableRepository, ManagerRegistry $doctrine)
     {
         $response = new JsonResponse();
         $nom = $request->get('nom');
@@ -217,17 +216,7 @@ class ParticipantController extends AbstractController
         $email = $request->get('res1email');
         $this->postResponsable($participant->getId(), $nom, $cognom1, $dni, $telefon1, $email,
             $responsableRepository, $participantRepository, $doctrine, $cognom2, $telefon2);
-        /*
-        $nom = $request->get('res2nom');
-        $cognom1 = $request->get('res2cognom1');
-        $cognom2 = $request->get('res2cognom2');
-        $dni = $request->get('res2dni');
-        $telefon1 = $request->get('res2telefon1');
-        $telefon2 = $request->get('res2telefo2');
-        $email = $request->get('res2email');
-        $this->postResponsable($participant->getId(),$nom,$cognom1,$dni,$telefon1,$email,
-            $responsableRepository,$participantRepository,$doctrine,$cognom2,$telefon2);
-*/
+
         return $response->setData([
             'success' => true,
             'data' => [

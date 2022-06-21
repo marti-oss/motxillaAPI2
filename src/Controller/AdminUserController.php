@@ -79,29 +79,6 @@ class AdminUserController extends AbstractController
     }
 
     /**
-     * @Route("/users", methods={"GET"})
-     */
-    public function getUsers(Request $request, UserRepository $userRepository)
-    {
-        $response = new JsonResponse();
-        $users = $userRepository->findAll();
-        $usersArray = [];
-        foreach ($users as $user) {
-            $usersArray[] = [
-                'id' => $user->getId(),
-                'email' => $user->getEmail(),
-                'contrasenya' => $user->getPassword(),
-            ];
-        }
-
-        return $response->setData([
-            'success' => true,
-            'data' => $usersArray,
-            'code' => 200
-        ]);
-    }
-
-    /**
      * @Route("/tokenid", methods={"GET"})
      */
     public function getId(ManagerRegistry $doctrine, Security $security, UserRepository $userRepository, Connection $connection)
