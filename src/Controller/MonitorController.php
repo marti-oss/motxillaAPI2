@@ -7,6 +7,7 @@ use App\Entity\Persona;
 use App\Entity\User;
 use App\Repository\ActivitatProgramadaRepository;
 use App\Repository\MonitorRepository;
+use App\Repository\UserRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -188,7 +189,7 @@ class MonitorController extends AbstractController
     /**
      * @Route("/monitors",methods={"POST"})
      */
-    public function addMonitor(Request $request, MonitorRepository $monitorRepository, ManagerRegistry $doctrine, UserPasswordHasherInterface $passwordHasher)
+    public function addMonitor(Request $request, MonitorRepository $monitorRepository, ManagerRegistry $doctrine, UserPasswordHasherInterface $passwordHasher, UserRepository $userRepository)
     {
 
         $nom = $request->get('nom');
@@ -200,31 +201,19 @@ class MonitorController extends AbstractController
         $email = $request->get('email');
         $response = new JsonResponse();
 
-        if ($nom == null) {
+        if ($nom == null || $cognom1 == null || $dni == null || $email == null) {
             return $response->setData([
                 'success' => false,
-                'data' => 'Nom no indicat',
+                'data' => 'S\'han de passar els paràmetres: nom, cognom1, dni, email',
                 'code' => 401
             ]);
         }
-        if ($cognom1 == null) {
+
+        $users= $userRepository->findBy(array("email"=>$email));
+        if(count($users) > 0) {
             return $response->setData([
                 'success' => false,
-                'data' => 'Cognom1 no indicat',
-                'code' => 401
-            ]);
-        }
-        if ($dni == null) {
-            return $response->setData([
-                'success' => false,
-                'data' => 'dni no indicat',
-                'code' => 401
-            ]);
-        }
-        if ($email == null) {
-            return $response->setData([
-                'success' => false,
-                'data' => 'email no indicat',
+                'data' => 'Ja exiteix un monitor amb aquest email',
                 'code' => 401
             ]);
         }
