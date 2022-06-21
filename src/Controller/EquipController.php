@@ -34,8 +34,6 @@ class EquipController extends AbstractController
             $equipArray[] = [
                 'id' => $equip->getId(),
                 'nom' => $equip->getNom(),
-                'monitors' => $equip->getMonitors(),
-                'participants' => $equip->getParticipants()
             ];
         }
 
